@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Billing System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header Navigation -->
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">Restaurant Billing</h1>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" onclick="showView('menu')">Menu & Billing</button>
+                <button class="nav-tab" onclick="showView('manage')">Manage Menu</button>
+                <button class="nav-tab" onclick="showView('sales')">Sales Report</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Menu & Billing View -->
+        <div id="menu-view" class="view active">
+            <div class="menu-container">
+                <h2>Menu</h2>
+                <div id="menu-grid" class="menu-grid">
+                    <!-- Menu items will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Cart Panel -->
+            <div class="cart-panel">
+                <h2>Cart</h2>
+                <div id="cart-items" class="cart-items">
+                    <!-- Cart items will be dynamically inserted here -->
+                </div>
+                <div class="cart-total">
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <span id="cart-subtotal">₹0</span>
+                    </div>
+                    <div class="tax-control">
+                        <label class="tax-toggle">
+                            <input type="checkbox" id="tax-toggle" checked onchange="toggleTax()">
+                            <span>Include Tax (5%)</span>
+                        </label>
+                    </div>
+                    <div class="total-row" id="tax-row" style="display: none;">
+                        <span>Tax:</span>
+                        <span id="cart-tax">₹0</span>
+                    </div>
+                    <div class="total-row total-final">
+                        <span>Total:</span>
+                        <span id="cart-total">₹0</span>
+                    </div>
+                </div>
+                <div class="cart-actions">
+                    <button class="btn btn-secondary" onclick="clearCart()">Clear Cart</button>
+                    <button class="btn btn-primary" onclick="showQRCode()" id="pay-now-btn" disabled>Pay Now</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Menu View -->
+        <div id="manage-view" class="view">
+            <div class="manage-container">
+                <h2>Manage Menu</h2>
+                <div class="add-item-form">
+                    <h3>Add New Item</h3>
+                    <form id="add-item-form" onsubmit="addMenuItem(event)">
+                        <input type="text" id="item-name" placeholder="Item Name" required>
+                        <input type="number" id="item-price" placeholder="Price (₹)" min="0" step="0.01" required>
+                        <input type="text" id="item-image" placeholder="Image Path (e.g., images/item.jpg)" required>
+                        <button type="submit" class="btn btn-primary">Add Item</button>
+                    </form>
+                </div>
+                <div class="menu-list">
+                    <h3>Current Menu Items</h3>
+                    <div id="manage-menu-grid" class="manage-menu-grid">
+                        <!-- Menu items for management will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Report View -->
+        <div id="sales-view" class="view">
+            <div class="sales-container">
+                <h2>Monthly Sales Report</h2>
+                <div class="report-controls">
+                    <label for="month-select">Select Month:</label>
+                    <input type="month" id="month-select" onchange="displaySalesReport()">
+                    <button class="btn btn-secondary" onclick="printSalesReport()">Print Report</button>
+                </div>
+                <div id="sales-report" class="sales-report">
+                    <!-- Sales report will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- QR Code Modal -->
+    <div id="qr-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeQRCode()">&times;</span>
+            <h2>Payment</h2>
+            <div class="qr-code-container">
+                <img id="qr-code-image" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=UPI_PAYMENT_QR_CODE" alt="QR Code" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'200\'%3E%3Crect width=\'200\' height=\'200\' fill=\'%23f0f0f0\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\'%3EQR Code%3C/text%3E%3C/svg%3E'">
+                <p>Scan to pay</p>
+                <p class="amount">Amount: <span id="payment-amount">₹0</span></p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="completePayment()">Payment Complete</button>
+                <button class="btn btn-secondary" onclick="closeQRCode()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Bill Template (Hidden) -->
+    <div id="print-bill" class="print-bill" style="display: none;">
+        <div class="bill-header">
+            <h2>Restaurant Bill</h2>
+            <p id="bill-date"></p>
+        </div>
+        <div class="bill-items">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="bill-items-body">
+                    <!-- Bill items will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+        <div class="bill-total">
+            <p>Subtotal: <span id="bill-subtotal-amount"></span></p>
+            <p id="bill-tax-row" style="display: none;">Tax (5%): <span id="bill-tax-amount"></span></p>
+            <p><strong>Total: <span id="bill-total-amount"></span></strong></p>
+        </div>
+        <div class="bill-footer">
+            <p>Thank you for your visit!</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
